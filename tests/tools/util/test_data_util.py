@@ -65,8 +65,9 @@ class Test(unittest.TestCase):
         data = {"Name": ["n/a", "", "tom", "alice", 0, 1], "Age": [np.nan, 10, "", "n/a", "0", "10"]}
         df1 = DataFrame(data)
         self.assertEqual(len(df1.index), 6, "The data frame should have 6 rows to start")
-        delete_rows_by_column(df1, "")
-        self.assertEqual(len(df1.index), 4, "The data frame should have 4 rows after deletion")
+        df2 = delete_rows_by_column(df1, "")
+        self.assertEqual(len(df2.index), 4, "The data frame should have 4 rows after deletion")
+        self.assertEqual(len(df1.index), 6, "The original data frame should be unchanged")
 
     def test_get_new_dataframe(self):
         df_new = get_new_dataframe(self.stern_map_path)

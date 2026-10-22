@@ -63,7 +63,8 @@ def delete_columns(df, column_list):
     """
 
     delete_cols = list(set(column_list).intersection(set(df)))
-    df.drop(columns=delete_cols, inplace=True)
+    for col in delete_cols:
+        del df[col]
 
 
 def delete_rows_by_column(df, value, column_list=None):
@@ -74,9 +75,12 @@ def delete_rows_by_column(df, value, column_list=None):
         value (str):         Specified value to indicate row should be deleted.
         column_list (list):  List of columns to search for value.
 
+    Returns:
+        DataFrame: A new dataframe with the matching rows removed.
+
     Notes:
         - All values are converted to string before testing.
-        - Deletion is done in place.
+        - The input dataframe is not modified, because pandas no longer supports dropping rows in place.
 
     """
     if column_list:
@@ -86,7 +90,8 @@ def delete_rows_by_column(df, value, column_list=None):
 
     for col in cols:
         map_col = df[col].map(str) == str(value)
-        df.drop(df[map_col].index, axis=0, inplace=True)
+        df = df.drop(df[map_col].index, axis=0)
+    return df
 
 
 def get_eligible_values(values, values_included):

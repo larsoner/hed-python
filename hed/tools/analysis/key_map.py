@@ -93,7 +93,7 @@ class KeyMap:
             df[additional_cols] = "n/a"
         if show_counts:
             df.insert(0, "key_counts", self._get_counts())
-            df.sort_values(by=["key_counts"], inplace=True, ignore_index=True, ascending=False)
+            df = df.sort_values(by=["key_counts"], ignore_index=True, ascending=False)
         return df
 
     def _get_counts(self):
@@ -172,7 +172,14 @@ class KeyMap:
         # Copy all the map_dict data into merged_df as new columns, merging on the map_dict_index number of both
         remapped_df = pd.merge(
             merged_df, self.col_map, left_on="key_value", right_index=True, suffixes=("", "_new"), how="left"
-        ).fillna("n/a")
+        )
+        # Columns that cannot hold the "n/a" string (e.g. float64 with NaN) must be cast to object before filling
+        cast_cols = {
+            col: object
+            for col in remapped_df.columns
+            if remapped_df[col].hasnans and not pd.api.types.is_string_dtype(remapped_df[col].dtype)
+        }
+        remapped_df = remapped_df.astype(cast_cols).fillna("n/a")
 
         # Override the original columns with our newly calculated ones
         for col in self.target_cols:
@@ -185,7 +192,7 @@ class KeyMap:
 
     def resort(self):
         """Sort the col_map in place by the key columns."""
-        self.col_map.sort_values(by=self.key_cols, inplace=True, ignore_index=True)
+        self.col_map = self.col_map.sort_values(by=self.key_cols, ignore_index=True)
         for index, row in self.col_map.iterrows():
             key_hash = data_util.get_row_hash(row, self.key_cols)
             self.map_dict[key_hash] = index
